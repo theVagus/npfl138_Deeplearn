@@ -194,7 +194,7 @@ def main(args: argparse.Namespace) -> None:
 ])
 
     # TODO: Create the model and train it.
-    model = CAGSSegmentationModel()
+    model = CAGSSegmentationModel().to("cuda")
 
     model.configure(
         optimizer=torch.optim.AdamW(model.parameters(), lr=0.0001),
@@ -203,11 +203,11 @@ def main(args: argparse.Namespace) -> None:
     )
     # Generate test set annotations, but in `args.logdir` to allow parallel execution.
     train = ManualDataset(cags.train,
-                        preprocess=preprocessing, augmentation_fn=augment)
+                        preprocess=preprocessing, )
     test = ManualDataset(cags.test,
-                        preprocess=preprocessing,augmentation_fn=augment)
+                        preprocess=preprocessing,)
     dev = ManualDataset(cags.dev, 
-                        preprocess=preprocessing,augmentation_fn=augment)
+                        preprocess=preprocessing,)
 
     train = DataLoader(train, batch_size=args.batch_size, shuffle=True,num_workers=args.dataloader_workers,persistent_workers=args.dataloader_workers > 0)
     dev = DataLoader(dev, batch_size=args.batch_size, shuffle=False,num_workers=args.dataloader_workers,persistent_workers=args.dataloader_workers > 0)
