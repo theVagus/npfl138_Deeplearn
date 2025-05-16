@@ -14,7 +14,17 @@ from .transformed_dataset import TransformedDataset
 from .datasets.gym_cartpole_dataset import GymCartpoleDataset
 from .datasets.mnist import MNIST
 
+# The metrics module
+from . import metrics
+
+# The reinforcement learning environments
+from . import envs
+
+# The rl_utils module
+from . import rl_utils
+
 # Utils
 from .initializers_override import global_keras_initializers
 from .startup import startup
 from .version import __version__, require_version
+from .vocabulary import Vocabulary

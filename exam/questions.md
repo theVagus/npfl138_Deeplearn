@@ -144,3 +144,154 @@
   individual characters), and two sentence-level bidirectional RNNs (explaining
   the bidirectionality) with a residual connection. Where would you put the
   dropout layers? [10]
+
+#### Questions@:, Lecture 8 Questions
+- In the context of named entity recognition, describe what the BIO encoding
+  is and why it is used. [5]
+
+- Write down the dynamic programming algorithm for decoding a BIO-tag sequence,
+  including its asymptotic complexity. [10]
+
+- In the context of CTC loss, describe regular and extended labelings and
+  write down the algorithm for computing the log probability of a gold label
+  sequence $\boldsymbol y$. [10]
+
+- Describe how CTC predictions are performed using a beam-search. [5]
+
+- Draw the CBOW architecture from `word2vec`, including the sizes of the inputs
+  and the sizes of the outputs and used non-linearities. Also make sure to
+  indicate where the embeddings are being trained. [5]
+
+- Draw the SkipGram architecture from `word2vec`, including the sizes of the
+  inputs and the sizes of the outputs and used non-linearities. Also make sure
+  to indicate where the embeddings are being trained. [5]
+
+- Describe the hierarchical softmax used in `word2vec`. [5]
+
+- Describe the negative sampling proposed in `word2vec`, including
+  the choice of distribution of negative samples. [5]
+
+- Explain how are ELMo embeddings trained and how are they used in downstream
+  applications. [5]
+
+#### Questions@:, Lecture 9 Questions
+- Considering machine translation, draw a recurrent sequence-to-sequence
+  architecture without attention, both during training and during inference
+  (include embedding layers, recurrent cells, classification layers,
+  argmax/softmax). [5]
+
+- Considering machine translation, draw a recurrent sequence-to-sequence
+  architecture with attention, used during training (include embedding layers,
+  recurrent cells, attention, classification layers).
+  Then write down how exactly is the attention computed. [10]
+
+- Explain how is word embeddings tying used in a sequence-to-sequence
+  architecture, including the necessary scaling. [5]
+
+- Write down why are subword units used in text processing, and describe the BPE
+  algorithm for constructing a subword dictionary from a large corpus. [5]
+
+- Write down why are subword units used in text processing, and describe the
+  WordPieces algorithm for constructing a subword dictionary from a large
+  corpus. [5]
+
+- Pinpoint the differences between the BPE and WordPieces algorithms, both
+  during dictionary construction and during inference. [5]
+
+- Describe the Transformer encoder architecture, including the description of
+  self-attention (but you do not need to describe multi-head attention), FFN
+  and positions of LNs and dropouts. [10]
+
+- Write down the formula of Transformer self-attention assuming you get
+  sequence representation $\boldsymbol X \in \mathbb{R}^{n \times d}$, and then
+  describe multi-head self-attention in detail, including the dimensionality
+  of the individual heads. [10]
+
+- Describe the Transformer decoder architecture, including the description of
+  self-attention and masked self-attention (but you do not need to describe
+  multi-head attention), FFN and positions of LNs and dropouts. Also discuss the
+  difference between training and prediction regimes. [10]
+
+#### Questions@:, Lecture 10 Questions
+- Why are positional embeddings needed in Transformer architecture? Write down
+  the sinusoidal positional embeddings used in the Transformer. [5]
+
+- Compare RNN to Transformer – what are the strengths and weaknesses of these
+  architectures? [5]
+
+- Describe the BERT architecture (you do not need to describe the (multi-head)
+  self-attention operation). Elaborate also on which positional embeddings
+  are used and what are the GELU activations. [10]
+
+- Describe the GELU activations and explain why are they a combination of ReLUs
+  and Dropout. [5]
+
+- Elaborate on BERT training process (what are the two objectives used and how
+  exactly are the corresponding losses computed). [10]
+
+- Describe the architecture of a Vision Transformer – how are input images
+  represented, draw the Transformer encoder layer and the FFN sublayer, how is
+  the distribution over predicted classes computed, what positional embeddings
+  are used (and what alternative positional embeddings were tried). [10]
+
+#### Questions@:, Lecture 11 Questions
+- Define the Markov Decision Process, including the definition of the return. [5]
+
+- Define the value function, such that all expectations are over simple random
+  variables (actions, states, rewards), not trajectories. [5]
+
+- Define the action-value function, such that all expectations are over simple
+  random variables (actions, states, rewards), not trajectories. [5]
+
+- Express the value function using the action-value function, and express the
+  action-value function using the value function. [5]
+
+- Formulate the policy gradient theorem. [5]
+
+- Prove the part of the policy gradient theorem showing the value
+  of $\nabla_{\boldsymbol\theta} v_\pi(s)$. [10]
+
+- Assuming the policy gradient theorem, formulate the loss used by the REINFORCE
+  algorithm and show how can its gradient be expressed as an expectation
+  over states and actions. [5]
+
+- Write down the REINFORCE algorithm, including the loss formula. [10]
+
+- Show that introducing baseline does not influence validity of the policy
+  gradient theorem. [5]
+
+- Write down the REINFORCE with baseline algorithm, including both loss
+  formulas. [10]
+
+- Sketch the overall structure and training procedure of the Neural Architecture
+  Search. You do not need to describe how exactly is the block produced by the
+  controller. [5]
+
+- Write down the variational lower bound (ELBO) in the form of a reconstruction
+  error minus the KL divergence between the encoder and the prior (i.e., in the
+  form used for model training). Then prove it is actually a lower bound on
+  the log-likelihood $\log P(\boldsymbol x)$. [10]
+
+- Draw an architecture of a variational autoencoder (VAE). Pay attention to the
+  parametrization of the distribution from the encoder (including the used
+  activation functions), show how to perform latent variable sampling so
+  that it is differentiable with respect to the encoder parameters (the
+  reparametrization trick), and write down the loss. [10]
+
+#### Questions@:, Lecture 12 Questions
+- Write down the min-max formulation of generative adversarial network (GAN)
+  objective. Then describe what loss is actually used for training the generator
+  in order to avoid vanishing gradients at the beginning of the training. [5]
+
+- Write down the training algorithm of generative adversarial networks (GAN),
+  including the losses minimized by the discriminator and the generator. Be sure
+  to use the version of generator loss which avoids vanishing gradients at the
+  beginning of the training. [10]
+
+- Explain how the class label is used when training a conditional generative
+  adversarial network (CGAN). [5]
+
+- Illustrate that alternating SGD steps are not guaranteed to converge for
+  a min-max problem. [5]
+
+Flow Matching questions will be added later.

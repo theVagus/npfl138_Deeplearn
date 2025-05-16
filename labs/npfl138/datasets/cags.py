@@ -8,17 +8,23 @@ import sys
 from typing import Sequence, TextIO, TypedDict
 import urllib.request
 
+
 import torch
 import torchvision
 
+from .. import metrics
 from .tfrecord_dataset import TFRecordDataset
 
 
 class CAGS:
     C: int = 3
+    """The number of image channels."""
     H: int = 224
+    """The image height."""
     W: int = 224
+    """The image width."""
     LABELS: int = 34
+    """The number of labels."""
     LABEL_NAMES: list[str] = [
         # Cats
         "Abyssinian", "Bengal", "Bombay", "British_Shorthair", "Egyptian_Mau",
@@ -32,7 +38,9 @@ class CAGS:
         "scottish_terrier", "shiba_inu", "staffordshire_bull_terrier",
         "wheaten_terrier", "yorkshire_terrier",
     ]
+    """The list of label names in the dataset."""
     Element = TypedDict("Element", {"image": torch.Tensor, "mask": torch.Tensor, "label": torch.Tensor})
+    """The type of a single dataset element."""
 
     _URL: str = "https://ufal.mff.cuni.cz/~straka/courses/npfl138/2425/datasets/"
 
@@ -41,9 +49,11 @@ class CAGS:
             super().__init__(path, size, decode_on_demand)
 
         def __len__(self) -> int:
+            """Return the number of elements in the dataset."""
             return super().__len__()
 
         def __getitem__(self, index: int) -> "CAGS.Element":
+            """Return the `index`-th element of the dataset."""
             return super().__getitem__(index)
 
         def _tfrecord_decode(self, data: dict, indices: dict, index: int) -> "CAGS.Element":
@@ -58,6 +68,7 @@ class CAGS:
             }
 
     def __init__(self, decode_on_demand: bool = False) -> None:
+        "Load the CAGS dataset, downloading it if necessary."
         for dataset, size in [("train", 2_142), ("dev", 306), ("test", 612)]:
             path = "cags.{}.tfrecord".format(dataset)
             if not os.path.exists(path):
@@ -68,38 +79,26 @@ class CAGS:
             setattr(self, dataset, self.Dataset(path, size, decode_on_demand))
 
     train: Dataset
+    """The training dataset."""
     dev: Dataset
+    """The development dataset."""
     test: Dataset
+    """The test dataset."""
 
     # The MaskIoUMetric
-    class MaskIoUMetric(torch.nn.Module):
-        """MaskIoUMetric computes IoU for CAGS dataset masks predicted by binary classification"""
-        def __init__(self):
-            super().__init__()
-            self.register_buffer("iou", torch.tensor(0.0, dtype=torch.float32), persistent=False)
-            self.register_buffer("count", torch.tensor(0, dtype=torch.int64), persistent=False)
-
-        def reset(self):
-            self.iou.zero_()
-            self.count.zero_()
-
-        def update(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> None:
-            y_pred_mask = (y_pred.detach() >= 0.5).reshape([-1, CAGS.H * CAGS.W])
-            y_true_mask = (y_true.detach() >= 0.5).reshape([-1, CAGS.H * CAGS.W])
-
-            intersection = torch.logical_and(y_pred_mask, y_true_mask).float().sum(dim=1)
-            union = torch.logical_or(y_pred_mask, y_true_mask).float().sum(dim=1)
-            iou = torch.where(union == 0, 1., intersection / union)
-
-            self.iou += iou.sum()
-            self.count += iou.shape[0]
-
-        def compute(self) -> torch.Tensor:
-            return self.iou / self.count
+    class MaskIoUMetric(metrics.MaskIoU):
+        """The MaskIoUMetric is a metric for evaluating the segmentation task."""
+        def __init__(self, from_logits: bool = False) -> None:
+            super().__init__((CAGS.H, CAGS.W), from_logits=from_logits)
 
     # Evaluation infrastructure.
     @staticmethod
     def evaluate_classification(gold_dataset: Dataset, predictions: Sequence[int]) -> float:
+        """Evaluate the `predictions` labels against the gold dataset.
+
+        Returns:
+          accurracy: The average accuracy of the predicted labels in percentages.
+        """
         gold = [int(example["label"]) for example in gold_dataset]
 
         if len(predictions) != len(gold):
@@ -111,11 +110,21 @@ class CAGS:
 
     @staticmethod
     def evaluate_classification_file(gold_dataset: Dataset, predictions_file: TextIO) -> float:
+        """Evaluate the file with label predictions against the gold dataset.
+
+        Returns:
+          accurracy: The average accuracy of the predicted labels in percentages.
+        """
         predictions = [int(line) for line in predictions_file]
         return CAGS.evaluate_classification(gold_dataset, predictions)
 
     @staticmethod
     def evaluate_segmentation(gold_dataset: Dataset, predictions: Sequence[torch.Tensor]) -> float:
+        """Evaluate the `predictions` masks against the gold dataset.
+
+        Returns:
+          iou: The average iou of the predicted masks in percentages.
+        """
         gold = [example["mask"] for example in gold_dataset]
 
         if len(predictions) != len(gold):
@@ -144,6 +153,11 @@ class CAGS:
 
     @staticmethod
     def evaluate_segmentation_file(gold_dataset: Dataset, predictions_file: TextIO) -> float:
+        """Evaluate the file with mask predictions against the gold dataset.
+
+        Returns:
+          iou: The average iou of the predicted masks in percentages.
+        """
         return CAGS.evaluate_segmentation(gold_dataset, CAGS.load_segmentation_file(predictions_file))
 
     @staticmethod
@@ -151,12 +165,12 @@ class CAGS:
         """Visualize the given image plus predicted mask.
 
         Parameters:
-            image: A torch.Tensor of shape [C, H, W] with dtype torch.uint8
-            mask: A torch.Tensor with H * W float values in [0, 1]
-            show: controls whether to show the figure or return it:
-              if `True`, the figure is shown using `plt.show()`;
-              if `False`, the `plt.Figure` instance is returned; it can be saved
-              to TensorBoard using a the `add_figure` method of a `SummaryWriter`.
+          image: A torch.Tensor of shape [C, H, W] with dtype torch.uint8
+          mask: A torch.Tensor with H * W float values in [0, 1]
+          show: controls whether to show the figure or return it:
+            if `True`, the figure is shown using `plt.show()`;
+            if `False`, the `plt.Figure` instance is returned; it can be saved
+            to TensorBoard using a the `add_figure` method of a `SummaryWriter`.
         """
         import matplotlib.pyplot as plt
 

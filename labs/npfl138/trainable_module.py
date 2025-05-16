@@ -3,6 +3,37 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""The Keras-inspired high-level API for training PyTorch models.
+
+The [TrainableModule][npfl138.trainable_module.TrainableModule] class is
+a high-level API for training PyTorch models. It is a subclass of
+[torch.nn.Module][] and:
+
+- It provides a high-level API for training, evaluation, and prediction
+  via [fit][npfl138.TrainableModule.fit], [evaluate][npfl138.TrainableModule.evaluate],
+  and [predict][npfl138.TrainableModule.predict] methods. Each can be customized
+  by overriding the corresponding [train_step][npfl138.TrainableModule.train_step],
+  [test_step][npfl138.TrainableModule.test_step], or [predict_step][npfl138.TrainableModule.predict_step]
+  methods.
+
+- The module automatically handles moving the model to a specified device,
+  using the first available accelerator (GPU, MPS, XPU) by default. To this end,
+  [configure][npfl138.TrainableModule.configure] or
+  [load_weights][npfl138.TrainableModule.load_weights] must always be called
+  first before using the high-level API.
+
+- The module provides API for serialization and deserialization of the model,
+  both the weights ([save_weights][npfl138.TrainableModule.save_weights],
+  [load_weights][npfl138.TrainableModule.load_weights]) and the configuration
+  ([save_config][npfl138.TrainableModule.save_config],
+  [load_config][npfl138.TrainableModule.load_config]).
+
+- The module keeps a collection of metrics implementing the
+  [MetricProtocol][npfl138.trainable_module.MetricProtocol] (e.g., any
+  metric from `torchmetric`), and stores the computed logs in a text
+  file, in TensorBoard logs, and in the console.
+"""
+
 import argparse
 import json
 import os
@@ -267,7 +298,7 @@ class TrainableModule(torch.nn.Module):
           log_graph: Controls whether to log the model graph to TensorBoard.
           console: Controls the console verbosity: 0 for silent, 1 for epoch logs, 2 for
             additional only-when-writing-to-console progress bar, 3 for persistent progress bar.
-            The default is 2, but be overridden by the `CONSOLE` environment variable.
+            The default is 2, but can be overridden by the `CONSOLE` environment variable.
 
         Returns:
           logs: A dictionary of logs from the training and optionally dev evaluation.
@@ -372,7 +403,7 @@ class TrainableModule(torch.nn.Module):
             the [CallbackProtocol][npfl138.trainable_module.CallbackProtocol] with arguments
             `self`, `epoch`, and `logs` arguments.
           console: Controls the console verbosity: 0 for silent, 1 for a single message.
-            The default is 1, but be overridden by the `CONSOLE` environment variable.
+            The default is 1, but can be overridden by the `CONSOLE` environment variable.
         """
         assert self.loss_tracker is not None, "The TrainableModule has not been configured, run configure first."
         self.eval()
@@ -561,7 +592,7 @@ class TrainableModule(torch.nn.Module):
           epochs: An optional total number of epochs, used during logging the epoch number.
           elapsed: An optional time elapsed since the beginning of the current epoch.
           console: Controls the console verbosity: 0 for silent, 1 for epoch logs.
-            The default is 1, but be overridden by the `CONSOLE` environment variable.
+            The default is 1, but can be overridden by the `CONSOLE` environment variable.
 
         Returns:
           self
@@ -586,7 +617,7 @@ class TrainableModule(torch.nn.Module):
           config: The dictionary of configuration to write.
           sort_keys: Whether to sort the keys of the configuration dictionary.
           console: Controls the console verbosity: 0 for silent, 1 for epoch logs.
-            The default is 1, but be overridden by the `CONSOLE` environment variable.
+            The default is 1, but can be overridden by the `CONSOLE` environment variable.
 
         Returns:
           self
@@ -623,6 +654,10 @@ class TrainableModule(torch.nn.Module):
             writer.add_graph(self, xs)
             writer.flush()
         return self
+
+    def log_console(self, message: str, end: str = "\n", file=None) -> Self:
+        """Log the given message to the console, correctly even if the progress bar is being used."""
+        tqdm.tqdm.write(message, file=file, end=end)
 
     def get_log_file(self) -> TextIO:
         """Possibly create and return a text-based log file for the current log.
